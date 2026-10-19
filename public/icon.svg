@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Computation I Path</title>
+  <rect width="64" height="64" rx="17" fill="#176b50"/>
+  <path d="M19 44V31c0-6 5-11 11-11h15" fill="none" stroke="#d7ede2" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 8"/>
+  <circle cx="19" cy="45" r="7" fill="#d7ede2"/>
+  <circle cx="46" cy="20" r="9" fill="#ffffff"/>
+  <path d="m42 20 3 3 5-6" fill="none" stroke="#176b50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
