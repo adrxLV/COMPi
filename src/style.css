@@ -330,6 +330,8 @@ pre code { padding: 0; background: transparent; color: inherit; }
 /* COMPi brand kit: locally hosted type, disciplined colour and real symbol. */
 h1, h2, h3, .brand, .mobile-brand, .node-copy strong { font-family: "Outfit", "Inter", sans-serif; }
 pre, code, .code, .code-input, .console, .orb, .editor, .cm-editor { font-family: "JetBrains Mono", monospace; }
+/* CodeMirror's default theme keeps a light surface in both app modes. Do not inherit white text from dark-mode body tokens. */
+.cm-editor { color: var(--compi-navy); }
 .brand { min-height: 52px; gap: .65rem; font-size: 1.55rem; letter-spacing: -.035em; }
 .brand img { width: 43px; height: 43px; object-fit: contain; }
 .brand-caption { margin: -.8rem 0 .1rem 4rem; letter-spacing: .12em; }
