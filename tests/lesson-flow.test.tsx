@@ -21,12 +21,12 @@ const exercise: Exercise = {
 };
 const callbacks = {
   onAnswer: vi.fn(), onCode: vi.fn(), onHint: vi.fn(), onSubmit: vi.fn(),
-  onAdvance: vi.fn(), onBack: vi.fn(), onExit: vi.fn(), onRetry: vi.fn(),
+  onAdvance: vi.fn(), onBack: vi.fn(), onExit: vi.fn(), onRetry: vi.fn(), onReveal: vi.fn(),
 };
 function screen(screenIndex: number, overrides: Record<string, unknown> = {}) {
   return renderToStaticMarkup(<LessonFlow unit={unit} exercise={exercise} screenIndex={screenIndex}
     answer="" code="" feedback={null} hint={false} running={false} runtime={null}
-    xpEarned={0} answerXpEarned={0} {...callbacks} {...overrides}/>);
+    xpEarned={0} answerXpEarned={0} reviewIndex={0} reviewTotal={0} revealed={false} revealedCount={0} {...callbacks} {...overrides}/>);
 }
 
 describe('LessonFlow', () => {
@@ -46,13 +46,24 @@ describe('LessonFlow', () => {
     expect(html).not.toContain(unit.explanation);
     expect(html).not.toContain('Continue to question 2');
   });
-  it('blocks advancing on incorrect feedback and offers retry and explanation', () => {
+  it('explains a first-pass mistake and lets the learner continue to later questions', () => {
     const html = screen(1, { feedback: 'incorrect', runtime: { id: 'r', ok: false, stdout: '', stderr: '', cases: [{ description: 'sample', passed: false, expected: 'a', actual: 'b' }] } });
     expect(html).toContain('Try again');
     expect(html).toContain('Review teaching');
     expect(html).toContain(exercise.explanation);
     expect(html).toContain('sample');
-    expect(html).not.toContain('Continue to question 2');
+    expect(html).toContain('Continue to question 2');
+  });
+  it('replays a missed question at the end with a way to reveal the answer', () => {
+    const html = screen(3, { reviewIndex: 1, reviewTotal: 1, feedback: 'incorrect' });
+    expect(html).toContain('Review 1 of 1');
+    expect(html).toContain('Show answer');
+    expect(html).not.toContain('Continue to question 4');
+  });
+  it('shows the real answer after giving up on review, then allows completion', () => {
+    const html = screen(3, { reviewIndex: 1, reviewTotal: 1, revealed: true });
+    expect(html).toContain('a and b');
+    expect(html).toContain('Finish lesson');
   });
   it('advances after correct feedback and only shows real earned XP', () => {
     expect(screen(1, { feedback: 'correct', xpEarned: 0 })).not.toContain('XP earned');

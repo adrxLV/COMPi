@@ -53,8 +53,17 @@ describe('backup migration and validation', () => {
   });
   it('round-trips an active screen and unchanged user data through v2 backups', () => {
     const state = importState(JSON.stringify(legacy), [unit]);
-    state.journey.active = { unitId: 'unit-alias', screenIndex: 2, startedAt: 1500, missed: ['w7-copy'], recovered: [] };
+    state.journey.active = { unitId: 'unit-alias', screenIndex: 2, startedAt: 1500, missed: ['w7-copy'], recovered: [], revealed: [] };
     expect(importState(exportState(state), [unit])).toEqual(state);
+  });
+  it('upgrades an in-progress v2 unit and preserves an already completed v2 screen', () => {
+    const active = { unitId: unit.id, screenIndex: 2, startedAt: 1000, missed: ['w7-copy'], recovered: ['w7-copy'] };
+    const old = { ...legacy, version: 2, journey: { completedUnits: [], active } };
+    expect(importState(JSON.stringify(old), [unit]).journey.active).toEqual({ ...active, revealed: [] });
+    const finished = { ...old, journey: { completedUnits: [unit.id], active: { ...active, screenIndex: 3 } } };
+    const result = importState(JSON.stringify(finished), [unit]);
+    expect(result.journey.active).toMatchObject({ screenIndex: 4, missed: ['w7-copy'], recovered: ['w7-copy'], revealed: [] });
+    expect(result.xp).toBe(45);
   });
   it.each([
     { ...legacy, drafts: [] },

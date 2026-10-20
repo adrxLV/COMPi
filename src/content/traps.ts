@@ -125,6 +125,7 @@ export const trapExercises: Exercise[] = [
   trap(7, 'double-slots', 'Repair loop-variable rebinding with indices', 14, {
     type: 'fix', difficulty: 'advanced',
     statement: 'Read comma-separated integers, including negatives, and double each element in the original list. Repair the loop without using a comprehension or a second list.',
+    solution: 'values = input().split(",")\nfor i in range(len(values)):\n    values[i] = int(values[i])\nfor i in range(len(values)):\n    values[i] *= 2\nprint(values)',
     starter: 'values = input().split(",")\nfor i in range(len(values)):\n    values[i] = int(values[i])\nfor value in values:\n    value *= 2\nprint(values)',
     tests: [
       { input: ['2,5'], expectedOutput: '[4, 10]\n', description: 'two positive values' },
@@ -137,6 +138,7 @@ export const trapExercises: Exercise[] = [
   trap(7, 'remove-on-copy', 'Repair removal during iteration', 17, {
     type: 'fix', difficulty: 'advanced',
     statement: 'Read comma-separated grades and discard every grade below 10. Repair the traversal so consecutive low grades are not skipped.',
+    solution: 'values = input().split(",")\nfor i in range(len(values)):\n    values[i] = int(values[i])\nfor value in values[:]:\n    if value < 10:\n        values.remove(value)\nprint(values)',
     starter: 'values = input().split(",")\nfor i in range(len(values)):\n    values[i] = int(values[i])\nfor value in values:\n    if value < 10:\n        values.remove(value)\nprint(values)',
     tests: [
       { input: ['12,3,2,18,15'], expectedOutput: '[12, 18, 15]\n', description: 'consecutive low grades' },

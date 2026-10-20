@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { spawnSync } from 'node:child_process';
 import { exercises } from '../src/content/index.ts';
 import { learningUnits } from '../src/content/learning.ts';
+import { gradeFixed } from '../src/assessment/grade';
 
 const output = (code: string) => {
   const run = spawnSync('python3', ['-c', code], { encoding: 'utf8' });
@@ -46,6 +47,24 @@ describe('source-aligned learning path', () => {
     expect(assigned).toHaveLength(exercises.length);
     expect(new Set(assigned).size).toBe(assigned.length);
     expect([...assigned].sort()).toEqual(exercises.map(e => e.id).sort());
+  });
+
+  it('accepts correct equivalent repair expressions in the real examination-style item', () => {
+    const repair = exercises.find(e => e.id === 'w7-exam-repair-analysis')!;
+    expect(gradeFixed(repair, ["guests.split(', ')", "names.append('Michael')", 'name.upper()', 'names[len(names) - 1]'])).toBe(true);
+  });
+
+  it('provides a runnable model answer for every coding review, verified against each case', () => {
+    const coding = exercises.filter(e => ['fix', 'complete', 'program'].includes(e.type));
+    expect(coding.length).toBeGreaterThan(0);
+    for (const exercise of coding) {
+      expect(exercise.solution?.trim().length, exercise.id).toBeGreaterThan(0);
+      for (const test of exercise.tests ?? []) {
+        const run = spawnSync('python3', ['-c', exercise.solution!], { encoding: 'utf8', input: `${test.input.join('\n')}\n` });
+        expect(run.status, `${exercise.id}: ${run.stderr}`).toBe(0);
+        expect(run.stdout, `${exercise.id}: ${test.description}`).toBe(test.expectedOutput);
+      }
+    }
   });
 
   it('introduces prerequisites before later applications and repairs', () => {

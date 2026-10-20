@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, CheckCircle, ArrowCounterClockwise } from '@phos
 import type { Answer } from '../../assessment/grade';
 import type { Exercise, LearningUnit, RuntimeResponse, TeachingStep } from '../../contracts';
 import { ExerciseInput } from './ExerciseInput';
+import { modelAnswer } from './reveal';
 import './lesson.css';
 
 export type LessonFlowProps = {
@@ -17,6 +18,10 @@ export type LessonFlowProps = {
   runtime: RuntimeResponse | null;
   xpEarned: number;
   answerXpEarned: number;
+  reviewIndex: number;
+  reviewTotal: number;
+  revealed: boolean;
+  revealedCount: number;
   onAnswer(v: Answer): void;
   onCode(v: string): void;
   onHint(): void;
@@ -25,6 +30,7 @@ export type LessonFlowProps = {
   onBack(): void;
   onExit(): void;
   onRetry(): void;
+  onReveal(): void;
 };
 
 function IdentityDiagram({ step }: { step: TeachingStep }) {
@@ -42,23 +48,26 @@ function IdentityDiagram({ step }: { step: TeachingStep }) {
 }
 
 export function LessonFlow({ unit, exercise, screenIndex, answer, code, feedback, hint, running, runtime, xpEarned, answerXpEarned,
-  onAnswer, onCode, onHint, onSubmit, onAdvance, onBack, onExit, onRetry }: LessonFlowProps) {
+  reviewIndex, reviewTotal, revealed, revealedCount, onAnswer, onCode, onHint, onSubmit, onAdvance, onBack, onExit, onRetry, onReveal }: LessonFlowProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [reviewing, setReviewing] = useState(false);
   useEffect(() => { setStepIndex(0); setReviewing(false); }, [unit.id, screenIndex]);
   const questionCount = unit.exerciseIds.length;
-  const complete = screenIndex === questionCount + 1 && !reviewing;
+  const isReview = reviewIndex > 0;
+  const complete = screenIndex === questionCount + reviewTotal + 1 && !reviewing;
   const teaching = screenIndex === 0 || reviewing;
   const stepCount = unit.teachingSteps?.length ?? 0;
   const currentStep = unit.teachingSteps?.[Math.min(stepIndex, stepCount - 1)];
-  const progress = Math.max(0, Math.min(screenIndex, questionCount + 1));
+  const progress = Math.max(0, Math.min(screenIndex, questionCount + reviewTotal + 1));
+  const nextLabel = isReview ? (reviewIndex === reviewTotal ? 'Finish lesson' : 'Next missed question')
+    : screenIndex === questionCount ? (reviewTotal ? 'Review missed questions' : 'Finish lesson') : `Continue to question ${screenIndex + 1}`;
 
   return <section className="lesson-flow" aria-label={`${unit.title} lesson`}>
     <header className="lesson-flow-header">
       <button type="button" className="text-button" onClick={onExit}><ArrowLeft size={18}/> Back to path</button>
-      <div className="lesson-progress-label"><span>Week {unit.week} · {unit.title}</span><strong>{reviewing ? 'Review' : teaching ? 'Learn' : complete ? 'Complete' : `Question ${screenIndex} of ${questionCount}`}</strong></div>
-      <progress className="progress lesson-progress" max={questionCount + 1} value={progress} aria-label="Lesson progress"/>
-      <span className="sr-only">{progress} of {questionCount + 1} screens completed</span>
+      <div className="lesson-progress-label"><span>Week {unit.week} · {unit.title}</span><strong>{reviewing ? 'Review teaching' : teaching ? 'Learn' : complete ? 'Complete' : isReview ? `Review ${reviewIndex} of ${reviewTotal}` : `Question ${screenIndex} of ${questionCount}`}</strong></div>
+      <progress className="progress lesson-progress" max={questionCount + reviewTotal + 1} value={progress} aria-label="Lesson progress"/>
+      <span className="sr-only">{progress} of {questionCount + reviewTotal + 1} screens completed</span>
     </header>
 
     {teaching && <article className="lesson-screen lesson-teaching">
@@ -82,15 +91,21 @@ export function LessonFlow({ unit, exercise, screenIndex, answer, code, feedback
       <span className="eyebrow">{exercise.type.replace('-', ' ')} · {exercise.difficulty}</span>
       <h1>{exercise.statement}</h1>
       {exercise.code && exercise.type !== 'bug' && <pre className="code"><code>{exercise.code}</code></pre>}
-      <ExerciseInput exercise={exercise} value={answer} onChange={onAnswer} code={code} onCode={onCode} disabled={feedback === 'correct' || running}/>
-      {hint && feedback === null && <p className="hint" role="status">Hint: {exercise.hints[0] ?? 'Review the teaching example and try again.'}</p>}
-      {feedback === null && <div className="lesson-actions">
+      <ExerciseInput exercise={exercise} value={answer} onChange={onAnswer} code={code} onCode={onCode} disabled={feedback === 'correct' || running || revealed}/>
+      {hint && feedback === null && !revealed && <p className="hint" role="status">Hint: {exercise.hints[0] ?? 'Review the teaching example and try again.'}</p>}
+      {feedback === null && !revealed && <div className="lesson-actions">
         <button type="button" className="button button-ghost" onClick={onBack}>Back</button>
         <button type="button" className="button button-ghost" onClick={() => setReviewing(true)}>Review teaching</button>
         <button type="button" className="button button-ghost" onClick={onHint} disabled={hint || running}>Show a hint</button>
+        {isReview && <button type="button" className="button button-ghost" onClick={onReveal}>Show answer</button>}
         <button type="button" className="button button-primary" onClick={onSubmit} disabled={running}>{running ? 'Checking…' : 'Check answer'} <ArrowRight size={18}/></button>
       </div>}
-      {feedback && <section className={`lesson-feedback ${feedback}`} role="status" aria-live="polite">
+      {revealed && <section className="lesson-feedback revealed" role="status" aria-live="polite">
+        <h2>Here is a model answer</h2><pre className="code"><code>{modelAnswer(exercise)}</code></pre>
+        <p>{exercise.explanation}</p><p>This question counts as reviewed with help, not independently correct.</p>
+        <button type="button" className="button button-primary" onClick={onAdvance}>{nextLabel} <ArrowRight size={18}/></button>
+      </section>}
+      {feedback && !revealed && <section className={`lesson-feedback ${feedback}`} role="status" aria-live="polite">
         <h2>{feedback === 'correct' ? 'That’s right.' : 'Not quite. Try again.'}</h2>
         <p>{exercise.explanation}</p>
         {runtime?.error && <p className="lesson-runtime-error">{runtime.error}</p>}
@@ -100,9 +115,9 @@ export function LessonFlow({ unit, exercise, screenIndex, answer, code, feedback
         {feedback === 'correct' && answerXpEarned > 0 && <p className="lesson-reward">+{answerXpEarned} XP earned</p>}
         <div className="lesson-actions">
           <button type="button" className="button button-ghost" onClick={() => setReviewing(true)}>Review teaching</button>
-          {feedback === 'incorrect'
-            ? <button type="button" className="button button-primary" onClick={onRetry}><ArrowCounterClockwise size={18}/> Try again</button>
-            : <button type="button" className="button button-primary" onClick={onAdvance}>{screenIndex === questionCount ? 'Finish lesson' : `Continue to question ${screenIndex + 1}`} <ArrowRight size={18}/></button>}
+          {feedback === 'incorrect' && <button type="button" className="button button-ghost" onClick={onRetry}><ArrowCounterClockwise size={18}/> Try again</button>}
+          {feedback === 'incorrect' && isReview && <button type="button" className="button button-ghost" onClick={onReveal}>Show answer</button>}
+          {(feedback === 'correct' || !isReview) && <button type="button" className="button button-primary" onClick={onAdvance}>{nextLabel} <ArrowRight size={18}/></button>}
         </div>
       </section>}
     </article>}
@@ -114,6 +129,7 @@ export function LessonFlow({ unit, exercise, screenIndex, answer, code, feedback
       <span className="eyebrow">Lesson finished</span>
       <h1>Lesson complete</h1>
       <p>You have worked through {unit.title}. Return to the path to choose what to practise next.</p>
+      {revealedCount > 0 && <p>{revealedCount} {revealedCount === 1 ? 'answer was' : 'answers were'} revealed with help. Revisit these questions in the Mistake Lab; lesson completion is not independent mastery.</p>}
       {xpEarned > 0 && <p className="lesson-reward">+{xpEarned} XP earned</p>}
       <div className="lesson-actions"><button type="button" className="button button-ghost" onClick={() => setReviewing(true)}>Review teaching</button><button type="button" className="button button-primary" onClick={onExit}>Back to path <ArrowRight size={18}/></button></div>
     </article>}

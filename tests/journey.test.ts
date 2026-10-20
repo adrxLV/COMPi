@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { LearningUnit } from '../src/contracts';
 import { defaultState, applyAttempt } from '../src/storage/state';
-import { beginUnit, setUnitScreen, recordUnitMistake, recordUnitRecovery, completeUnit, isUnitComplete, getResumeUnit } from '../src/storage/journey';
+import { beginUnit, setUnitScreen, recordUnitMistake, recordUnitRecovery, recordUnitReveal, advanceUnit, currentUnitStep, earnedUnitXp, completeUnit, isUnitComplete, getResumeUnit } from '../src/storage/journey';
 import type { Exercise } from '../src/contracts';
 
 const first: LearningUnit = { id: 'unit-one', week: 1, title: 'One', objective: '', explanation: '', example: '', exerciseIds: ['w1-a', 'w1-b'] };
@@ -9,6 +9,43 @@ const second: LearningUnit = { ...first, id: 'unit-two', exerciseIds: ['w1-c'] }
 const question = (id: string) => ({ id, difficulty: 'beginner' } as Exercise);
 
 describe('journey helpers', () => {
+  it('reconstructs only first-try XP earned during this unit after reload', () => {
+    let state = applyAttempt(defaultState(), question('w1-a'), true, false, 1, 50);
+    state = beginUnit(state, first, 100);
+    state = advanceUnit(state, first);
+    state = applyAttempt(state, question('w1-b'), true, false, 1, 110);
+    expect(earnedUnitXp(state, first)).toBe(10);
+    expect(earnedUnitXp(JSON.parse(JSON.stringify(state)), first)).toBe(10);
+  });
+  it('advances past a mistake, then revisits that question before completing', () => {
+    let progress = beginUnit(defaultState(), first, 100);
+    progress = advanceUnit(progress, first);
+    progress = recordUnitMistake(applyAttempt(progress, question('w1-a'), false, false, 1, 110), 'w1-a');
+    progress = advanceUnit(progress, first);
+    expect(currentUnitStep(progress, first)).toMatchObject({ phase: 'question', exerciseId: 'w1-b' });
+    progress = applyAttempt(progress, question('w1-b'), true, false, 1, 120);
+    progress = advanceUnit(progress, first);
+    expect(currentUnitStep(progress, first)).toMatchObject({ phase: 'review', exerciseId: 'w1-a', reviewIndex: 1, reviewTotal: 1 });
+    expect(() => advanceUnit(progress, first)).toThrow();
+    progress = recordUnitRecovery(applyAttempt(progress, question('w1-a'), true, false, 2, 130), 'w1-a');
+    progress = advanceUnit(progress, first);
+    expect(currentUnitStep(progress, first).phase).toBe('complete');
+    expect(isUnitComplete(progress, first)).toBe(true);
+    expect(progress.completed).toEqual(['w1-b']);
+  });
+  it('reveals an unsolved review answer without granting mastery or extra XP', () => {
+    let progress = advanceUnit(beginUnit(defaultState(), first, 100), first);
+    progress = recordUnitMistake(applyAttempt(progress, question('w1-a'), false, false, 1, 110), 'w1-a');
+    progress = advanceUnit(progress, first);
+    progress = applyAttempt(progress, question('w1-b'), true, false, 1, 120);
+    progress = advanceUnit(progress, first);
+    progress = recordUnitReveal(progress, 'w1-a');
+    expect(progress.journey.active?.revealed).toEqual(['w1-a']);
+    progress = advanceUnit(progress, first);
+    expect(isUnitComplete(progress, first)).toBe(true);
+    expect(progress.xp).toBe(10);
+    expect(progress.completed).not.toContain('w1-a');
+  });
   it('resumes the same screen without restarting or losing other progress', () => {
     const initial = { ...defaultState(), xp: 20, drafts: { 'w1-a': 'answer' } };
     const begun = beginUnit(initial, first, 100);

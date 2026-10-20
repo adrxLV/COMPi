@@ -19,4 +19,21 @@ describe('fixed grading', () => {
   const multi = { type:'multipart', parts:[{prompt:'a',answer:'7'},{prompt:'b',answer:'x'}] } as Exercise;
   expect(gradeFixed(multi, ['7','x'])).toBe(true);
  });
+ it('accepts equivalent names for Python error classes without relaxing printed output', () => {
+  const syntax = item('error', 'SyntaxError');
+  for (const answer of ['syntax error', 'SyntaxError', 'a syntax error', 'It is a syntax error.', '  SYNTAX ERROR  ']) {
+   expect(gradeFixed(syntax, answer)).toBe(true);
+  }
+  expect(gradeFixed(syntax, 'runtime error')).toBe(false);
+  expect(gradeFixed(item('error', 'IndexError'), 'index error')).toBe(true);
+  expect(gradeFixed(item('predict', 'SyntaxError'), 'syntax error')).toBe(false);
+ });
+ it('accepts authored alternative expressions in multipart repairs, not arbitrary expressions', () => {
+  const exercise = { ...item('multipart', undefined), parts: [
+   { prompt: 'Append', answer: 'names.append("Michael")', acceptedAnswers: ["names.append('Michael')"] },
+   { prompt: 'Last', answer: 'names[-1]', acceptedAnswers: ['names[len(names) - 1]'] },
+  ] } as unknown as Exercise;
+  expect(gradeFixed(exercise, ["names.append('Michael')", 'names[len(names) - 1]'])).toBe(true);
+  expect(gradeFixed(exercise, ["names.append('Michael')", 'names[0]'])).toBe(false);
+ });
 });

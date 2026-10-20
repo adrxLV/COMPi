@@ -30,18 +30,29 @@ function validJourney(value: unknown, units: readonly LearningUnit[]): boolean {
   if (value.active === undefined) return true;
   const active = value.active;
   if (!record(active) || typeof active.unitId !== 'string' || !active.unitId || !integerNonnegative(active.screenIndex) ||
-    !integerNonnegative(active.startedAt) || !strings(active.missed) || !strings(active.recovered)) return false;
+    !integerNonnegative(active.startedAt) || !strings(active.missed) || !strings(active.recovered) ||
+    (active.revealed !== undefined && !strings(active.revealed))) return false;
   const missed = active.missed as string[];
-  if (!active.recovered.every(id => missed.includes(id))) return false;
+  if (!active.recovered.every(id => missed.includes(id)) || (active.revealed !== undefined && !active.revealed.every(id => missed.includes(id))) ||
+    new Set(missed).size !== missed.length) return false;
   const unit = units.find(u => u.id === active.unitId);
-  return !unit || (active.screenIndex as number) <= unit.exerciseIds.length + 1;
+  return !unit || (missed.every(id => unit.exerciseIds.includes(id)) && (active.screenIndex as number) <= unit.exerciseIds.length + missed.length + 1);
 }
 
 /** Validate before copying any backup or stored profile into live state. */
 export function migrateState(value: unknown, units: readonly LearningUnit[] = learningUnits): LearnerState {
   if (!record(value) || (value.version !== 1 && value.version !== 2) || !validCommon(value) ||
     (value.version === 2 && !validJourney(value.journey, units))) throw new Error('Unsupported or corrupt progress backup');
-  if (value.version === 2) return value as LearnerState;
+  if (value.version === 2) {
+    const saved = value as LearnerState;
+    const active = saved.journey.active;
+    if (!active || active.revealed !== undefined) return saved;
+    const unit = units.find(u => u.id === active.unitId);
+    const completedScreen = unit && saved.journey.completedUnits.includes(unit.id) && active.screenIndex === unit.exerciseIds.length + 1;
+    return { ...saved, journey: { ...saved.journey, active: {
+      ...active, revealed: [], screenIndex: completedScreen ? active.screenIndex + active.missed.length : active.screenIndex,
+    } } };
+  }
   const completed = new Set(value.completed as string[]);
   return { ...value, version: 2, journey: {
     completedUnits: units.filter(unit => unit.exerciseIds.length > 0 && unit.exerciseIds.every(id => completed.has(id))).map(unit => unit.id),
@@ -54,7 +65,7 @@ export async function loadState(): Promise<LearnerState> {
   catch (error) { console.warn('IndexedDB unavailable', error); return defaultState(); }
   if (stored === undefined) return defaultState();
   const migrated = migrateState(stored); // Corrupt stored progress must not be silently reset and overwritten.
-  if ((stored as { version?: unknown }).version === 1) await saveState(migrated);
+  if (stored !== migrated) await saveState(migrated);
   return migrated;
 }
 export async function saveState(state: LearnerState): Promise<boolean> {
@@ -75,4 +86,4 @@ export function exportState(state: LearnerState): string { return JSON.stringify
 export function importState(text: string, units: readonly LearningUnit[] = learningUnits): LearnerState {
   return migrateState(JSON.parse(text) as unknown, units);
 }
-export { beginUnit, setUnitScreen, recordUnitMistake, recordUnitRecovery, completeUnit, isUnitComplete, getResumeUnit } from './journey';
+export { beginUnit, setUnitScreen, recordUnitMistake, recordUnitRecovery, recordUnitReveal, advanceUnit, currentUnitStep, earnedUnitXp, completeUnit, isUnitComplete, getResumeUnit } from './journey';

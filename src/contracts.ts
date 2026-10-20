@@ -6,9 +6,9 @@ export type Exercise = {
   id: string; week: number; topic: string; subtopic: string; prerequisites: string[];
   objectives: string[]; difficulty: Difficulty; type: ExerciseType; statement: string;
   code?: string; referenceInput?: string[]; options?: string[]; answer?: string | string[] | number[];
-  tests?: TestCase[]; starter?: string; hints: string[]; explanation: string;
+  tests?: TestCase[]; starter?: string; solution?: string; hints: string[]; explanation: string;
   misconceptions: string[]; provenance: Provenance; reviewDays: number;
-  parts?: { prompt: string; answer: string }[];
+  parts?: { prompt: string; answer: string; acceptedAnswers?: string[] }[];
 };
 export type Lesson = { id: string; week: number; title: string; concept: string; explanation: string; example: string; exerciseIds: string[]; prerequisites: string[] };
 // Learning-path units are independent of weekly source groupings. Existing
@@ -23,7 +23,7 @@ export type LearningUnit = {
   teachingSteps?: TeachingStep[];
 };
 export type JourneyProgress = {
-  active?: { unitId: string; screenIndex: number; startedAt: number; missed: string[]; recovered: string[] };
+  active?: { unitId: string; screenIndex: number; startedAt: number; missed: string[]; recovered: string[]; revealed: string[] };
   completedUnits: string[];
 };
 export type TraceBinding = { name: string; objectId: number; type: string; repr: string };
