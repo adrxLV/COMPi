@@ -20,7 +20,7 @@ Open `http://localhost:4173/COMPi/`. Development: `npm run dev` and open the URL
 
 ## Deploy to GitHub Pages
 
-The repository is configured with Vite `base: '/COMPi/'` and hash navigation. Publish the contents of `dist/` at a repository named `COMPi`, or set `VITE_BASE=/your-repository/ npm run build` for another name. GitHub Pages serves only static files. The manifest scope, service worker and worker asset paths use the repository subpath. **No remote Pages deployment has been performed or verified.** Changing the base requires a new build and first online visit to precache the new origin/path.
+The repository is configured with Vite `base: '/COMPi/'` and hash navigation for `https://adrxlv.github.io/COMPi/`. GitHub Actions builds on each push to `main` and runs `npm run verify:pages` against the generated files before uploading `dist/`. The test rejects root-level `/assets/` URLs and a `CNAME` that would reassign the removed custom domain. The manifest scope, service worker and worker asset paths use the repository subpath. For another repository name, update both Vite's base and the workflow's `VITE_BASE`. After a deployment, visit online once to cache the new assets before using offline mode. A successful local build is not proof the remote deployment is live.
 
 ## What works
 
@@ -41,7 +41,7 @@ See `docs/curriculum-matrix.md` and `docs/exam-blueprint.md`. The app contains *
 - Several formats share fixed-answer controls; the memory question is not yet a full object-diagram puzzle, and fixed traces are not a per-step assessment. Exam multipart answers are exact-key comparisons; valid alternative wording may be marked wrong.
 - Coding tests compare output for supplied cases. A requirement such as *use `for`* is explained but **not enforced semantically**; client-side cases cannot be secret from users.
 - The revision scheduler is deliberately simple, not FSRS; mastery is labelled an estimate based on unaided first-try answers and does not prove retention. The practice paper is deterministic and its open tasks do not form a single continuing scenario.
-- No iOS Safari/iPad hardware, Android hardware, Lighthouse, screen-reader or remote GitHub Pages deployment tests have been performed. Chromium desktop, emulated mobile viewport and offline browser reload were exercised locally. Browser workers isolate responsiveness but are not a perfect security sandbox.
+- No iOS Safari/iPad hardware, Android hardware, Lighthouse or screen-reader tests have been performed. Chromium desktop, emulated mobile viewport and offline browser reload were exercised locally. A remote Pages deployment previously served a blank page because the custom-domain root base was retained after reverting to the repository URL; the corrective files are prepared locally but **not yet published or re-verified remotely**. Browser workers isolate responsiveness but are not a perfect security sandbox.
 
 ## Checks
 

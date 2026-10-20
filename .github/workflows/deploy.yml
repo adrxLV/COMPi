@@ -36,7 +36,10 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_BASE: /
+          VITE_BASE: /COMPi/
+
+      - name: Verify repository Pages paths
+        run: npm run verify:pages
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

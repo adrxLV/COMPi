@@ -16,7 +16,8 @@ Project: `/home/adrxlv/Projects/computation-i-path`.
 - `npm test`: 31 Vitest tests and 9 Node content tests passed, including the 17 integrated traps.
 - `npm run validate:content`: 7 lessons, 52 exercises. CPython verified 22 deterministic snippet answers and all reference coding cases.
 - Chromium production preview: completed first lesson, earned 10 XP, refreshed twice and retained it; edited Python, ran multiple `input()` calls with prompts and saw `A? B? 78`; ran Python offline after service-worker cache completed; 390 px emulated phone showed no horizontal overflow; exam displayed 9 grouped questions, saved an answer across reload, and submitted with post-exam feedback. Following branding, a fresh production browser showed the COMPi logo, Outfit heading, light canvas, 52 activities, 390 px mobile without overflow, 36/36 offline assets cached, and a fresh offline Python run printing `[1, 2, 3, 4]`.
-- No actual iOS Safari/iPad hardware, Android hardware, remote GitHub Pages deployment, Lighthouse or screen-reader test has occurred. These must not be claimed.
+- Repository-path regression: `npm run build && npm run verify:pages` passed (36 precached assets); generated HTML resolves JS/CSS under `/COMPi/assets/` and `dist/CNAME` is absent. Chromium preview at `http://127.0.0.1:4173/COMPi/` rendered the app and executed Python (`[1, 2, 3, 4]`). These fixes are local until the owner pushes them.
+- No actual iOS Safari/iPad hardware, Android hardware, Lighthouse or screen-reader test has occurred. The currently published Pages URL was observed blank before this local correction; the corrected remote deployment has not been verified.
 
 ## Remaining acceptance gaps
 - 200+ high-quality exercises not met (52 currently). Nested shallow-copy and object-graph pedagogy remains limited; the newly integrated alias/copy item is explicitly labelled enrichment, not confirmed first-test scope.

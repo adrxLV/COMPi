@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build && node scripts/generate-sw.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run tests && node --test src/content/*.test.mjs",
-    "validate:content": "node scripts/validate-content.mjs"
+    "validate:content": "node scripts/validate-content.mjs",
+    "verify:pages": "node --test scripts/pages-deploy.test.mjs"
   },
   "dependencies": {
     "@codemirror/lang-python": "^6.2.1",
