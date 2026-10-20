@@ -11,9 +11,24 @@ export type Exercise = {
   parts?: { prompt: string; answer: string }[];
 };
 export type Lesson = { id: string; week: number; title: string; concept: string; explanation: string; example: string; exerciseIds: string[]; prerequisites: string[] };
+// Learning-path units are independent of weekly source groupings. Existing
+// exercise IDs remain stable so attempts and XP survive the redesign.
+export type TeachingStep = {
+  caption: string; code: string;
+  bindings: { name: string; objectId: string; value: string }[];
+};
+export type LearningUnit = {
+  id: string; week: number; title: string; objective: string;
+  explanation: string; example: string; exerciseIds: string[];
+  teachingSteps?: TeachingStep[];
+};
+export type JourneyProgress = {
+  active?: { unitId: string; screenIndex: number; startedAt: number; missed: string[]; recovered: string[] };
+  completedUnits: string[];
+};
 export type TraceBinding = { name: string; objectId: number; type: string; repr: string };
 export type TraceFrame = { line: number; source: string; bindings: TraceBinding[]; output: string };
 export type RuntimeRequest = { id: string; mode: 'run' | 'grade' | 'trace'; code: string; inputs: string[]; tests?: TestCase[]; maxSteps?: number };
 export type RuntimeResponse = { id: string; ok: boolean; stdout: string; stderr: string; error?: string; timedOut?: boolean; cases?: { description: string; passed: boolean; expected: string; actual: string; error?: string }[]; frames?: TraceFrame[] };
 export type Attempt = { exerciseId: string; at: number; correct: boolean; attempts: number; difficulty: Difficulty; hintUsed: boolean };
-export type LearnerState = { version: 1; nickname: string; confidence: Difficulty; xp: number; completed: string[]; attempts: Attempt[]; drafts: Record<string,string>; exams: Record<string,unknown>; preferences: { reducedMotion: boolean } };
+export type LearnerState = { version: 2; nickname: string; confidence: Difficulty; xp: number; completed: string[]; attempts: Attempt[]; drafts: Record<string,string>; exams: Record<string,unknown>; preferences: { reducedMotion: boolean }; journey: JourneyProgress };
