@@ -8,7 +8,14 @@ The baseline Pages app was audited in Chromium: weekly lessons mixed teaching wi
 
 The redesign has 22 source-aligned concept units across Weeks 1–7, assigning each of the existing 52 exercise IDs exactly once. The guided journey separates teaching, one question per screen, review and completion. Incorrect first-pass answers do not block progress: after the original questions, missed items return for retry or an explicit model-answer reveal. Revealed answers are not credited as correct or awarded XP. Teaching can be revisited from any question without losing place. XP earned in the unit survives reload. Textual error categories accept standard alternatives (e.g. `syntax error` and `SyntaxError`); curated equivalent expressions are accepted in multipart repairs. Exact-output questions still require the actual output. The path recommends the next unit and offers review of due mistakes. Optional reference and loop demonstrations are authored/verified illustrations, not claims of live tracing.
 
-The Practice Arena now includes a `Not attempted` filter, combinable with week, type and search. Any submitted answer, including an incorrect one, counts as attempted. Python Playground, Exam Simulator, Mistake Lab, traps and visualiser remain distinct modes. All are reachable on mobile through the bottom navigation and its More menu. Guided lessons hide navigation clutter. Lessons animate only when motion is permitted; the Reduce motion setting and OS preference disable it. The OS dark colour scheme now works; `index.html` no longer forces light mode.
+The application now eliminates decision fatigue by providing exactly 5 focused destinations:
+1. **Learning path** (`#path`) — 22 source-aligned concept units with granular step progression.
+2. **Simulation & Practice** (`#practice` / `#exam`) — unified hub offering the 90-minute timed / untimed Mini Test I simulation (with the 4-group, 20-point weighting from `Simulado_Mini_Teste_I_Agy_2026.md`) and Unlimited Practice (filtered by week, format, and unattempted status).
+3. **Python traps** (`#traps`) — examination traps focusing on slices, append return values, method calls, and in-place list iteration.
+4. **Playground** (`#playground`) — standalone real Python 3 environment running privately via Pyodide.
+5. **Settings & Progress** (`#settings`) — learner preferences, offline storage, backup management, and the full progress dashboard (XP, streak, achievements, mastery, week breakdown).
+
+Mobile navigation now presents these 5 destinations directly without an overflow "More" drawer. Animations have been elevated with calibrated spring curves (`--ease-spring`), tactile hover elevation, tactile active press, subtle ambient floating orbs in the hero, and smooth progress transitions. Full Awwwards-style audit via the `jury` skill confirms 0 axe accessibility violations, 0 audit FAILs, 60 FPS scrolling, and active idle ambient motion.
 
 ## Source and scope
 

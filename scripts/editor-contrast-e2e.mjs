@@ -13,7 +13,8 @@ try {
     const context = await browser.newContext({ colorScheme, viewport: { width: colorScheme === 'dark' ? 390 : 1280, height: 800 } });
     const page = await context.newPage();
     await page.goto(base);
-    await page.getByRole('button', { name: 'Practice arena' }).click();
+    await page.getByRole('button', { name: 'Simulation & Practice' }).click();
+    await page.getByRole('tab', { name: 'Unlimited practice' }).click();
     await page.getByLabel('Search').fill('Boolean expression construction');
     await page.locator('.practice-row').click();
     await page.locator('.cm-editor .cm-line').first().waitFor();

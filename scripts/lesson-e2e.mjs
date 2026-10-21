@@ -51,7 +51,8 @@ try {
   await page.reload();
   await page.getByText('1 / 22 lessons completed').waitFor();
   assert.equal(await page.locator('.top-stats').innerText(), '✦ 20 XP');
-  await page.getByRole('button', { name: 'Practice arena' }).click();
+  await page.getByRole('button', { name: 'Simulation & Practice' }).click();
+  await page.getByRole('tab', { name: 'Unlimited practice' }).click();
   await page.getByRole('combobox', { name: 'Progress' }).selectOption('unattempted');
   await page.getByLabel('Search').fill('Error categories');
   assert.equal(await page.locator('.practice-row').count(), 0, 'an incorrect attempt still counts as attempted');
@@ -65,18 +66,17 @@ try {
   await page.getByText('Well reasoned.').waitFor({ timeout: 30000 });
   assert.match(await page.locator('.feedback').innerText(), /expected P/);
   await page.getByRole('button', { name: 'Return to practice' }).click();
-  await page.getByRole('button', { name: 'Exam simulation' }).click();
+  await page.getByRole('tab', { name: 'Simulation test' }).click();
   await page.getByRole('button', { name: /Untimed practice/ }).click();
   assert.equal(await page.getByText('That’s right.').count(), 0, 'exam must not reveal live feedback');
 
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const phone = await mobile.newPage();
   await phone.goto(base);
-  await phone.getByRole('button', { name: 'More destinations' }).click();
-  await phone.getByRole('navigation', { name: 'More destinations' }).getByRole('button', { name: 'Settings' }).click();
+  await phone.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('button', { name: 'Settings' }).click();
   await phone.getByLabel('Reduce motion').check();
   assert.equal(await phone.locator('.app.reduce-motion').count(), 1);
-  await phone.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('button', { name: 'Learning path' }).click();
+  await phone.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('button', { name: 'Learning' }).click();
   await phone.getByRole('button', { name: /Continue learning/ }).click();
   const geometry = await phone.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: window.innerWidth }));
   assert.equal(geometry.width, geometry.viewport, 'phone has no horizontal overflow');
